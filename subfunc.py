@@ -3,6 +3,7 @@
 # 1.1: Import useful libraries.
 
 import numpy as np
+import sys
 
 # 2: Handmade functions.
 
@@ -133,7 +134,6 @@ def mem_res(S, b, t, fy, E, k):
     
     A = 4 * b * t
     Vol = A * S
-    print(A)
     
     fy *= 10**3
     E *= 10**6
@@ -178,3 +178,85 @@ def evaluation(F, T_for_cr, C_for_cr):
     Failure = np.asscalar(Failure)
     
     return Failure
+
+# 3: Check that width and thickness are not out of bounds.
+
+# 3.1: Create custom input error class:
+
+class InputError(Exception):
+    """Base class for input exceptions in this module."""
+    
+    pass
+
+# 3.1.1: Create width error subclass.
+
+class WidthInput(InputError):
+    """Exception raised for errors in the input of the width.
+    
+    Attributes:
+        expression -- input expression in which the error occurred
+        message -- explanation of the error
+    """
+    
+    def __init__(self, message, payload=None):
+        self.message = message
+        self.payload = payload
+        
+    def __str__(self):
+        return str(self.message)
+    
+# 3.1.2: Create thickness error subclass.
+    
+class ThickInput(InputError):
+    """Exception raised for errors in the input of the thickness.
+    
+    Attributes:
+        expression -- input expression in which the error occurred
+        message -- explanation of the error
+    """
+    
+    def __init__(self, message, payload=None):
+        self.message = message
+        self.payload = payload
+        
+    def __str__(self):
+        return str(self.message)
+    
+# 3.2: Test the variables b and t for input error.
+
+def bounds(b, t):
+    '''
+    
+
+    Parameters
+    ----------
+    b : FLOAT VECTOR
+        The width of the truss' members (mm).
+    t : FLOAT VECTOR
+        The thickness of the truss' members (mm).
+
+    Returns
+    -------
+    None.
+
+    '''
+    
+    b = b.reshape((1, len(b)))
+    t = t.reshape((1, len(t)))
+    
+    if np.any(b < 80) | np.any(b > 300):
+        try:
+            raise WidthInput("INVALID INPUT", "The width is out of bounds.")
+        except WidthInput as error:
+            print(str(error))
+            print("Detail: {}".format(error.payload))
+            sys.exit()
+    
+    if np.any(t < 3) | np.any(t > 20):
+        try:
+            raise ThickInput("INVALID INPUT", "The thickness is out of bounds.")
+        except ThickInput as error:
+            print(str(error))
+            print("Detail: {}".format(error.payload))
+            sys.exit()
+            

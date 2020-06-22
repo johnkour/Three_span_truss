@@ -3,7 +3,7 @@
 # 1.1: Import useful libraries.
 
 import numpy as np
-from subfunc import mem_length, axial_f, mem_res, evaluation
+from subfunc import mem_length, axial_f, mem_res, evaluation, bounds
 
 # 1.2: Define the geometry of the truss.
 
@@ -41,6 +41,10 @@ b = np.array(b_lst)     # width in mm.
 
 t_lst = [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3]
 t = np.array(t_lst)     # thickness in mm.
+
+# # 3.2: Test the variables b and t for input error.
+
+bounds(b, t)
 
 # 2.3: Calculate the members' resistance.
 
