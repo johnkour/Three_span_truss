@@ -26,13 +26,15 @@ def mem_length(L, h):
     
     '''
     
+    m, n =np.shape(L)
+    
     temp1 = np.sqrt(h**2 + (L/3/2)**2)
     temp2 = L/3
     
-    temp3 = np.zeros((1, 11), dtype = int)
-    temp3[0, ::2] = 1
+    temp3 = np.zeros((m, 11), dtype = int)
+    temp3[:, ::2] = 1
     
-    temp4 = np.ones((1, 11), dtype = int) 
+    temp4 = np.ones((m, 11), dtype = int) 
     temp4 -= temp3
     
     S = temp1 * temp3 + temp2 * temp4
@@ -62,37 +64,48 @@ def axial_f(P, S, L, h):
     
     '''
     
+    m, n = np.shape(S)
     SP = np.sum(P, axis = 1, keepdims = True)
+    print(SP)
+    print(S[:, 0])
     
+    temp = np.zeros((m, 6))
     
-    temp1 = -SP / 2
-    temp1 /= (h / S[0, 0])
+    temp[:, 0] = -SP.flatten() / 2
+    print(temp[:, 0])
+    temp[:, 0] /= (h.flatten() / S[:, 0])
+    print(temp[:, 0])
     
-    temp2 = np.abs(temp1) 
-    temp2 *= (S[0, 1] / S[0, 0]) / 2
+    temp[:, 1] = np.abs(temp[:, 0]) 
+    temp[:, 1] *= S[:, 1] / 2
+    temp[:, 1] /= S[:, 0]
+    print(temp[:, 1])
     
-    temp3 = (np.abs(temp1) * (h / S[0, 0]) - P[0, 0])
-    temp3 /= (h / S[0, 2])
+    temp[:, 2] = np.abs(temp[:, 0]) * (h.flatten() / S[:, 0])
+    temp[:, 2] -= P[:, 0]
+    temp[:, 2] /= (h.flatten() / S[:, 2])
+    print(temp[:, 2])
     
-    temp4 = np.abs(temp1) + np.abs(temp3)
-    temp4 *= -(S[0, 1] / S[0, 2]) / 2
+    temp[:, 3] = np.abs(temp[:, 0]) + np.abs(temp[:, 2])
+    temp[:, 3] *= -(S[:, 1] / S[:, 2]) / 2
+    print(temp[:, 3])
     
-    temp5 = -temp3
+    temp[:, 4] = -temp[:, 2]
+    print(temp[:, 4])
     
-    temp6 = (np.abs(temp3) + np.abs(temp5))
-    temp6 *= (S[0, 1] / S[0, 2]) / 2
-    temp6 += np.abs(temp2)
+    temp[:, 5] = (np.abs(temp[:, 2]) + np.abs(temp[:, 4]))
+    temp[:, 5] *= (S[:, 1] / S[:, 2]) / 2
+    temp[:, 5] += np.abs(temp[:, 1])
+    print(temp[:, 5])
     
-    temp = np.array([temp1, temp2, temp3, temp4, temp5, temp6])
-    temp = temp.flatten()
-    temp = np.reshape(temp, (1, 6))
+    print(temp)
     
-    F = np.zeros((1, 11), dtype = float)
-    F[0, :6] = temp
-    temp = temp[0, ::-1]
-    temp = np.delete(temp, 0)
+    F = np.zeros((m, n), dtype = float)
+    F[:, :6] = temp
+    temp = temp[:, ::-1]
+    temp = np.delete(temp, 0, 1)
 
-    F[0, 6:] = temp
+    F[:, 6:] = temp
     
     return F
 
@@ -126,8 +139,9 @@ def mem_res(S, b, t, fy, E, k):
 
     '''
 
-    b = b.reshape((1, len(b)))
-    t = t.reshape((1, len(t)))
+    m, n = np.shape(b)
+#     b = b.reshape((1, len(b)))
+#     t = t.reshape((1, len(t)))
     
     b = b / 10 ** 3
     t = t / 10 ** 3
@@ -171,11 +185,13 @@ def evaluation(F, T_for_cr, C_for_cr):
 
     '''
     
+    m, n = np.shape(F)
+    
     Failure = (C_for_cr > F) | (T_for_cr < F)
     temp = Failure.astype(int)
-    Failure = np.amax(temp, axis = 1)
+    Failure = np.amax(temp, axis = 1, keepdims = True)
     
-    Failure = np.asscalar(Failure)
+#     Failure = np.asscalar(Failure)
     
     return Failure
 
@@ -241,8 +257,8 @@ def bounds(b, t):
 
     '''
     
-    b = b.reshape((1, len(b)))
-    t = t.reshape((1, len(t)))
+#     b = b.reshape((1, len(b)))
+#     t = t.reshape((1, len(t)))
     
     if np.any(b < 80) | np.any(b > 300):
         try:
