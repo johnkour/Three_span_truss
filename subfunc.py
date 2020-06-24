@@ -3,6 +3,8 @@
 # 1.1: Import useful libraries.
 
 import numpy as np
+from numpy import  random as rnd
+import pandas as pd
 import sys
 
 # 2: Handmade functions.
@@ -27,9 +29,9 @@ def mem_length(L, h):
     '''
     
     m, n =np.shape(L)
-    
-    temp1 = np.sqrt(h**2 + (L/3/2)**2)
-    temp2 = L/3
+
+    temp2 = L/3    
+    temp1 = np.hypot(h, temp2 /2)
     
     temp3 = np.zeros((m, 11), dtype = int)
     temp3[:, ::2] = 1
@@ -256,6 +258,23 @@ class ThickInput(InputError):
     def __str__(self):
         return str(self.message)
 
+# 3.1.4: Create data import error subclass.
+
+class DataInput(InputError):
+    """Exception raised for errors in the input of the data from CSV.
+    
+    Attributes:
+        expression -- input expression in which the error occurred
+        message -- explanation of the error
+    """
+    
+    def __init__(self, message, payload=None):
+        self.message = message
+        self.payload = payload
+        
+    def __str__(self):
+        return str(self.message)
+
 # 3.2.1: Test the variable m for input error.
 
 def ex_num(m):
@@ -324,6 +343,118 @@ def bounds(b, t):
         try:
             raise ThickInput("INVALID INPUT", "The thickness is out of bounds.")
         except ThickInput as error:
+            print(str(error))
+            print("Detail: {}".format(error.payload))
+            sys.exit()
+            
+
+# Define function to generate the data:
+
+def generator(m):
+    '''
+    
+
+    Parameters
+    ----------
+    m : INTEGER
+        Number of training examples.
+
+    Returns
+    -------
+    b : (m x 11) ARRAY
+        The width of the truss' members (mm).
+    t : (m x 11) ARRAY
+        The thickness of the truss' members (mm).
+    P : (m x 3) ARRAY
+        The load of the truss in each of the 3 nodes (kN).
+
+    '''
+    
+    # b starts at 80mm, stops at 300mm and can be raised by 5mm.
+    
+    b = rnd.random_integers(0, 44, size = (m, 11)) * 5
+    b += 80
+    
+    # t starts at 3mm, stops at 20mm and can be raised by 1mm.
+    
+    t = rnd.random_integers(3, 20, size = (m, 11))
+    
+    # P starts at 0kN and stops at 250kN.
+    
+    P = rnd.random(size = (m, 3))
+    P *= 250
+    P = np.round(P, decimals = 2)
+    
+    return b, t, P
+
+# Define function to export the data to CSV:
+
+def exporter(path, name, tup, fl_form):
+    '''
+    
+
+    Parameters
+    ----------
+    path : STRING
+        The path, where the file containing the data will be stored.
+    name : STRING
+        The name of the CSV file containing the data.
+    tup : TUPLE OF ARRAYS
+        The tuple containing the arrays with the data to be stored.
+    fl_form : STRING
+        The format of the numbers to be stored in the CSV.
+
+    Returns
+    -------
+    None.
+
+    '''
+
+    name += '.csv'
+    data = np.concatenate(tup, axis = 1)
+    df = pd.DataFrame(data)
+    
+    path += '/' + name
+    
+    df.to_csv(path, float_format = fl_form, header = False, index = False)
+
+# Define function to import the data from CSV:
+
+def importer(name, data, ch_size = 100 * 10**5):
+    '''
+    
+
+    Parameters
+    ----------
+    name    : STRING
+                The name of the CSV file with the data.
+    data    : STRING
+                'inp': if the file contains the variables.
+                'out': if the file contains the results.
+    ch_size : INTEGER
+                The size of the chuncks of data to be parsed simultaneously.
+
+    Returns
+    -------
+    None.
+
+    '''
+    
+    if data == 'inp':
+        
+        lst = [ 'b' + str(i) for i in range(1, 12)]
+        lst += [ 't' + str(i) for i in range(1, 12)]
+        lst += [ 'P' + str(i) for i in range(1, 4)]
+        
+    elif data == 'out':
+        
+        lst = ['Failure']
+        
+    else:
+        
+        try:
+            raise DataInput("INVALID INPUT", "The variable data must have value 'inp' or 'out'.")
+        except DataInput as error:
             print(str(error))
             print("Detail: {}".format(error.payload))
             sys.exit()
