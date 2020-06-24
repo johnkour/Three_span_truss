@@ -14,14 +14,14 @@ def mem_length(L, h):
     
     Parameters
     ----------
-    L : FLOAT
+    L : (m x 1) ARRAY
         The length of the truss (m).
-    h : FLOAT
+    h : (m x 1) ARRAY
         The heigth of the truss (m).
     
     Returns
     -------
-    S : FLOAT VECTOR
+    S : (m x 11) ARRAY
         The legth of the truss' members (m).
     
     '''
@@ -48,57 +48,57 @@ def axial_f(P, S, L, h):
     
     Parameters
     ----------
-    P : FLOAT VECTOR
+    P : (m x 3) ARRAY
         The forces that the truss bears (kN).
-    S : FLOAT VECTOR
+    S : (m x 11) ARRAY
         The legth of the truss' members (m).
-    L : FLOAT
+    L : (m x 1) ARRAY
         The length of the truss (m).
-    h : FLOAT
+    h : (m x 1) ARRAY
         The heigth of the truss (m).
 
     Returns
     -------
-    F : FLOAT VECTROR
+    F : (m x 11) ARRAY
         The axial forces of the truss' members (kN).
     
     '''
     
     m, n = np.shape(S)
     SP = np.sum(P, axis = 1, keepdims = True)
-    print(SP)
-    print(S[:, 0])
+#     print(SP)
+#     print(S[:, 0])
     
     temp = np.zeros((m, 6))
     
     temp[:, 0] = -SP.flatten() / 2
-    print(temp[:, 0])
+#     print(temp[:, 0])
     temp[:, 0] /= (h.flatten() / S[:, 0])
-    print(temp[:, 0])
+#     print(temp[:, 0])
     
     temp[:, 1] = np.abs(temp[:, 0]) 
     temp[:, 1] *= S[:, 1] / 2
     temp[:, 1] /= S[:, 0]
-    print(temp[:, 1])
+#     print(temp[:, 1])
     
     temp[:, 2] = np.abs(temp[:, 0]) * (h.flatten() / S[:, 0])
     temp[:, 2] -= P[:, 0]
     temp[:, 2] /= (h.flatten() / S[:, 2])
-    print(temp[:, 2])
+#     print(temp[:, 2])
     
     temp[:, 3] = np.abs(temp[:, 0]) + np.abs(temp[:, 2])
     temp[:, 3] *= -(S[:, 1] / S[:, 2]) / 2
-    print(temp[:, 3])
+#     print(temp[:, 3])
     
     temp[:, 4] = -temp[:, 2]
-    print(temp[:, 4])
+#     print(temp[:, 4])
     
     temp[:, 5] = (np.abs(temp[:, 2]) + np.abs(temp[:, 4]))
     temp[:, 5] *= (S[:, 1] / S[:, 2]) / 2
     temp[:, 5] += np.abs(temp[:, 1])
-    print(temp[:, 5])
+#     print(temp[:, 5])
     
-    print(temp)
+#     print(temp)
     
     F = np.zeros((m, n), dtype = float)
     F[:, :6] = temp
@@ -117,11 +117,11 @@ def mem_res(S, b, t, fy, E, k):
 
     Parameters
     ----------
-    S           : FLOAT VECTOR
+    S           : (m x 11) ARRAY
                     The legth of the truss' members (m).
-    b           : FLOAT VECTOR
+    b           : (m x 11) ARRAY
                     The width of the truss' members (mm).
-    t           : FLOAT VECTOR
+    t           : (m x 11) ARRAY
                     The thickness of the truss' members (mm).
     fy          : INTEGER
                     The resistance of the steel (MPa).
@@ -132,9 +132,9 @@ def mem_res(S, b, t, fy, E, k):
 
     Returns
     -------
-    T_for_cr   : FLOAT VECTOR
+    T_for_cr   : (m x 11) ARRAY
                     The tensile resistance of the truss' members (kN).
-    C_for_cr   : FLOAT VECTOR
+    C_for_cr   : (m x 11) ARRAY
                     The resistance of the truss' members to compression (kN).
 
     '''
@@ -171,16 +171,16 @@ def evaluation(F, T_for_cr, C_for_cr):
 
     Parameters
     ----------
-    F          : FLOAT VECTROR
+    F          : (m x 11) ARRAY
                     The axial forces of the truss' members (kN).
-    T_for_cr   : FLOAT VECTOR
+    T_for_cr   : (m x 11) ARRAY
                     The tensile resistance of the truss' members (kN).
-    C_for_cr   : FLOAT VECTOR
+    C_for_cr   : (m x 11) ARRAY
                     The resistance of the truss' members to compression (kN).
 
     Returns
     -------
-    Failure    : INTEGER (0 OR 1)
+    Failure    : (m x 1) ARRAY WITH ELEMENT VALUES 0 OR 1
                     1 if the truss fails, 0 otherwise.
 
     '''
@@ -204,7 +204,25 @@ class InputError(Exception):
     
     pass
 
-# 3.1.1: Create width error subclass.
+# 3.1.1: Create number of training examples error subclass.
+
+class ExamplesNumber(InputError):
+    """Exception raised for errors in the input of the number of training 
+        examples.
+    
+    Attributes:
+        expression -- input expression in which the error occurred
+        message -- explanation of the error
+    """
+    
+    def __init__(self, message, payload=None):
+        self.message = message
+        self.payload = payload
+        
+    def __str__(self):
+        return str(self.message)
+
+# 3.1.2: Create width error subclass.
 
 class WidthInput(InputError):
     """Exception raised for errors in the input of the width.
@@ -221,7 +239,7 @@ class WidthInput(InputError):
     def __str__(self):
         return str(self.message)
     
-# 3.1.2: Create thickness error subclass.
+# 3.1.3: Create thickness error subclass.
     
 class ThickInput(InputError):
     """Exception raised for errors in the input of the thickness.
@@ -237,8 +255,42 @@ class ThickInput(InputError):
         
     def __str__(self):
         return str(self.message)
+
+# 3.2.1: Test the variable m for input error.
+
+def ex_num(m):
+    '''
     
-# 3.2: Test the variables b and t for input error.
+
+    Parameters
+    ----------
+    m : INTEGER(?)
+        Number of training examples.
+
+    Returns
+    -------
+    None.
+
+    '''
+    
+    try:
+        
+        m = int(m)
+        
+    except:
+        
+        try:
+            raise ExamplesNumber("INVALID INPUT",
+                                 "The number of training examples " +
+                                 "is not an integer.")
+        except ExamplesNumber as error:
+            print(str(error))
+            print("Detail: {}".format(error.payload))
+            sys.exit()
+    
+    return m
+    
+# 3.2.2: Test the variables b and t for input error.
 
 def bounds(b, t):
     '''
@@ -246,9 +298,9 @@ def bounds(b, t):
 
     Parameters
     ----------
-    b : FLOAT VECTOR
+    b : (m x 11) ARRAY
         The width of the truss' members (mm).
-    t : FLOAT VECTOR
+    t : (m x 11) ARRAY
         The thickness of the truss' members (mm).
 
     Returns
