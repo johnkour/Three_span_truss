@@ -3,9 +3,9 @@
 '''
     In lines 11 - 79 you will find my custom classes, craeted to raise some 
 error messages.
-    In lines 80 - 484 you will find my custom functions, used to speed up the 
+    In lines 80 - 482 you will find my custom functions, used to speed up the 
 program and free some memory.
-    From line 485 on you will find the main program for the analysis.
+    From line 483 on you will find the main program for the analysis.
 '''
 
 # 1.1: Import useful libraries.
@@ -477,8 +477,6 @@ def exporter(path, name, tup, fl_form):
     path += '/' + name
     
     df.to_csv(path, float_format = fl_form, header = False, index = False)
-
-# Define function to import the data from CSV:
 
 
 
