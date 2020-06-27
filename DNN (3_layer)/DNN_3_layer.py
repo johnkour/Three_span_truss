@@ -4,9 +4,9 @@
 '''
     In lines 21 - 46 you will find my custom classes, craeted to raise some 
 error messages.
-    In lines 47 - 474 you will find my custom functions, used to speed up the 
+    In lines 47 - 547 you will find my custom functions, used to speed up the 
 program and free some memory.
-    From line 475 on you will find the main program for the logistic regression.
+    From line 548 on you will find the main program for the logistic regression.
 '''
 
 # IMPORT USEFUL LIBRARIES:
@@ -118,6 +118,9 @@ def importer(name, data_t, ch_size = 100 * 10**5):
 
 def random_mini_batches(X, Y, mini_batch_size = 64):
     '''
+    
+    Summary
+    ----------
     Creates a list of random minibatches from (X, Y)
     
     Arguments:
@@ -161,17 +164,23 @@ def random_mini_batches(X, Y, mini_batch_size = 64):
 def feedfor(parameters, X):
     '''
     
+    Summary
+    ----------
+    After the training is complete, we make our predictions (Y_hat) by
+    performing feedforward propagation. This function exists, because we cannot
+    use the function based on tensorflow.
 
     Parameters
     ----------
-    parameters : TYPE
-        DESCRIPTION.
-    X         : TYPE
-        DESCRIPTION.
+    parameters : DICTIONARY
+                    A dictionary containing the weights and biases of all layers.
+    X         : INPUT ARRAY
+                    The array with the variables of the problem.
 
     Returns
     -------
-    Y_hat:
+    Y_hat     : ARRAY
+                    The array that contains our predictions.
 
     '''
     
@@ -196,26 +205,31 @@ def feedfor(parameters, X):
 def Conf_matrix(Y, Y_hat):
     '''
     
+    Summary
+    ----------
+    This function creates the confusion matrix and calculates the accuracy, the
+    precision, the recall and the F1_Score of the learning algorithm. All these
+    measures are used to evaluate our model.
 
     Parameters
     ----------
-    Y : TYPE
-        DESCRIPTION.
-    Y_hat : TYPE
-        DESCRIPTION.
+    Y : ARRAY
+        The array with the true labels for the problem.
+    Y_hat : ARRAY
+        The array with the predicted by the Neural Network labels.
 
     Returns
     -------
-    Conf_matrix : TYPE
-        DESCRIPTION.
-    Acc : TYPE
-        DESCRIPTION.
-    Prec : TYPE
-        DESCRIPTION.
-    Rec : TYPE
-        DESCRIPTION.
-    F1_Score : TYPE
-        DESCRIPTION.
+    Conf_matrix : ARRAY
+        The confusion matrix of the binary problem.
+    Acc : FLOAT
+        The accuracy of the learning algorithm.
+    Prec : FLOAT
+        The precision of the learning algorithm.
+    Rec : FLOAT
+        The recall of the learning algorithm.
+    F1_Score : FLOAT
+        The F1_Score of the learning algorithm.
 
     '''
     
@@ -257,21 +271,30 @@ def Conf_matrix(Y, Y_hat):
 # IMPORT X,Y AS PLACEHOLDERS:
 
 def create_placeholders(n_x, n_y):
-    """
+    '''
+    
+    Summary
+    ----------
     Creates the placeholders for the tensorflow session.
     
-    Arguments:
-    n_x -- scalar, size of an image vector (num_px * num_px = 64 * 64 * 3 = 12288)
-    n_y -- scalar, number of classes (from 0 to 5, so -> 6)
+    Parameters
+    ----------
+    n_x : INTEGER
+            The number of variables of the problem (b_i, t_i, P_i).
+    n_y : INTEGER
+            The number of classes (binary problem, so 2: 0 or 1)
     
-    Returns:
-    X -- placeholder for the data input, of shape [n_x, None] and dtype "tf.float32"
-    Y -- placeholder for the input labels, of shape [n_y, None] and dtype "tf.float32"
+    Returns
+    -------
+    X : placeholder for the data input, of shape [n_x, None] and dtype "tf.float32"
+    Y : placeholder for the input labels, of shape [n_y, None] and dtype "tf.float32"
     
-    Tips:
+    Tip
+    ---
     - You will use None because it let's us be flexible on the number of examples you will for the placeholders.
       In fact, the number of examples during test/train is different.
-    """
+      
+    '''
 
     X = tf.placeholder(tf.float32, [n_x, None], name = 'X')
     Y = tf.placeholder(tf.float32, [n_y, None], name = 'Y')
@@ -281,8 +304,12 @@ def create_placeholders(n_x, n_y):
 # INITIALIZATION:
 
 def initialize_parameters():
-    """
-    Initializes parameters to build a neural network with tensorflow. The shapes are:
+    '''
+    
+    Summary
+    ----------
+    Initializes parameters to build a neural network with tensorflow. The
+    shapes are:
                         W1 : [50, 25]
                         b1 : [50, 1]
                         W2 : [50, 50]
@@ -290,9 +317,12 @@ def initialize_parameters():
                         W3 : [1, 50]
                         b3 : [1, 1]
     
-    Returns:
-    parameters -- a dictionary of tensors containing W1, b1, W2, b2, W3, b3
-    """
+    Returns
+    -------
+    parameters : DICTIONARY
+                    A dictionary of tensors containing W1, b1, W2, b2, W3, b3.
+    
+    '''
     
         
     W1 = tf.get_variable("W1", [50, 25], initializer = tf.initializers.he_normal())
@@ -314,16 +344,25 @@ def initialize_parameters():
 # FORWARD PROPAGATION:
 
 def forward_propagation(X, parameters):
-    """
-    Implements the forward propagation for the model: LINEAR -> RELU -> LINEAR -> RELU -> LINEAR -> SIGMOID
+    '''
     
-    Arguments:
-    X -- input dataset placeholder, of shape (input size, number of examples)
-    parameters -- python dictionary containing your parameters "W1", "b1", "W2", "b2", "W3", "b3"
-                  the shapes are given in initialize_parameters
-    Returns:
-    Z3 -- the output of the last LINEAR unit
-    """
+    Summary
+    ----------
+    Implements the forward propagation for the model:
+        LINEAR -> RELU -> LINEAR -> RELU -> LINEAR -> SIGMOID
+    
+    Parameters
+    ----------
+    X          : ARRAY
+                    The input dataset placeholder.
+    parameters : DICTIONARY
+                    A dictionary containing the weights and biases:
+                        "W1", "b1", "W2", "b2", "W3", "b3"
+    Returns
+    -------
+    Z3         : ARRAY
+                    The output of the last LINEAR unit.
+    '''
     
     # Retrieve the parameters from the dictionary "parameters" 
     W1 = parameters['W1']
@@ -345,19 +384,31 @@ def forward_propagation(X, parameters):
 # COST FUNCTION:
 
 def compute_cost(Z3, Y, parameters, lambd):
-    """
-    Computes the cost
+    '''
     
-    Arguments:
-    Z3 -- output of forward propagation (output of the last LINEAR unit), of shape (1, number of examples)
-    Y -- "true" labels vector placeholder, same shape as Z3
-    parameters -- python dictionary containing your parameters "W1", "b1", "W2", "b2", "W3", "b3"
-                  the shapes are given in initialize_parameters
-    lambd -- L2 regularization parameter
+    Summary
+    ----------
+    Computes the cost, so as for the algorithm to minimize it.
     
-    Returns:
-    cost - Tensor of the cost function
-    """
+    Parameters
+    ----------
+    Z3          : ARRAY
+                  The output of forward propagation (output of the last LINEAR
+                  unit), of shape (1, number of examples).
+    Y           : ARRAY
+                  The "true" labels vector placeholder, same shape as Z3
+    parameters : DICTIONAR
+                  A dictionary containing your parameters:
+                      "W1", "b1", "W2", "b2", "W3", "b3"
+                  the shapes are given in initialize_parameters.
+    lambd      : FLOAT
+                  The L2 regularization parameter.
+    
+    Returns
+    -------
+    cost       : Tensor of the cost function.
+    
+    '''
     
     # Retrieve the parameters from the dictionary "parameters" 
     W1 = parameters['W1']
@@ -377,23 +428,45 @@ def compute_cost(Z3, Y, parameters, lambd):
 
 def model(X_train, Y_train, X_test, Y_test, learning_rate = 0.0001, lambd = 0.01,
           num_epochs = 1500, minibatch_size = 32, print_cost = True):
-    """
-    Implements a three-layer tensorflow neural network: LINEAR->RELU->LINEAR->RELU->LINEAR->SOFTMAX.
+    '''
     
-    Arguments:
-    X_train -- training set, of shape (input size = 2, number of training examples = )
-    Y_train -- training set, of shape (output size = 1, number of training examples = )
-    X_test -- test set, of shape (input size = 1, number of training examples = )
-    Y_test -- test set, of shape (output size = 1, number of test examples = )
-    learning_rate -- learning rate of the optimization
-    lambd -- L2 regularization parameter
-    num_epochs -- number of epochs of the optimization loop
-    minibatch_size -- size of a minibatch
-    print_cost -- True to print the cost every 100 epochs
+    Summary
+    ----------
+    Implements a three-layer tensorflow neural network:
+        LINEAR->RELU->LINEAR->RELU->LINEAR->SOFTMAX.
     
-    Returns:
-    parameters -- parameters learnt by the model. They can then be used to predict.
-    """
+    Parameters
+    ----------
+    X_train        : ARRAY
+                      The input array of the training set, of shape (input size
+                      = 25, number of training examples = m_train).
+    Y_train        : ARRAY
+                      The output array of the training set, of shape (output 
+                      size = 1, number of training examples = m_train).
+    X_test         : ARRAY
+                      The input array of the test set, of shape (input size = 
+                      1, number of training examples = m_test).
+    Y_test         : ARRAY
+                      The output array of the test set, of shape (output size
+                      = 1, number of test examples = m_test).
+    learning_rate  : FLOAT
+                      The learning rate of the optimization.
+    lambd          : FLOAT
+                      The L2 regularization parameter to avoid overfitting.
+    num_epochs     : INTEGER
+                      The number of epochs of the optimization loop.
+    minibatch_size : INTEGER
+                      The size of a minibatch (It can be divided by 2).
+    print_cost     : LOGICAL
+                      True to print the cost every 100 epochs.
+    
+    Returns
+    -------
+    parameters     : DICTIONARY
+                      parameters learnt by the model. They can then be used to
+                      make predictions.
+    
+    '''
     
 #     ops.reset_default_graph()                         # to be able to rerun the model without overwriting tf variables
     (n_x, m) = X_train.shape                          # (n_x: input size, m : number of examples in the train set)
